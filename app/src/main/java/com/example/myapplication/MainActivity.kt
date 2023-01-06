@@ -2,6 +2,7 @@ package com.example.myapplication
 
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -17,6 +18,10 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.example.myapplication.databinding.ActivityMainBinding
 import java.io.ByteArrayOutputStream
 
@@ -36,7 +41,31 @@ memecaller()
             { response ->
                 Log.d("sougata","the responce is ${response.getString("url")}")
                 Glide.with(this)
-                    .load(response.getString("url"))
+                    .load(response.getString("url")).listener(object : RequestListener<Drawable>{
+
+                        override fun onLoadFailed(
+                            e: GlideException?,
+                            model: Any?,
+                            target: Target<Drawable>?,
+                            isFirstResource: Boolean
+                        ): Boolean {
+                            binding.progressbar.visibility = View.GONE
+                            return false
+                        }
+
+                        override fun onResourceReady(
+                            resource: Drawable?,
+                            model: Any?,
+                            target: Target<Drawable>?,
+                            dataSource: DataSource?,
+                            isFirstResource: Boolean
+                        ): Boolean {
+                            binding.progressbar.visibility = View.GONE
+                            binding.nextmemebutton.isEnabled = true
+                            binding.sharememebutton.isEnabled = true
+                            return false
+                        }
+                    })
                     .into(binding.imageView);
                 binding.progressbar.visibility=View.GONE
                  x=true
