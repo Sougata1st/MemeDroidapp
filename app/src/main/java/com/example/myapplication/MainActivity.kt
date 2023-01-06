@@ -9,6 +9,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.Toast
 import androidx.core.graphics.drawable.toBitmap
 import com.android.volley.Request
 import com.android.volley.Response
@@ -31,7 +32,6 @@ memecaller()
     }
     fun memecaller(){
         binding.progressbar.visibility=View.VISIBLE
-        val queue = Volley.newRequestQueue(this)
         val jsonObjectRequest = JsonObjectRequest(Request.Method.GET, url, null,
             { response ->
                 Log.d("sougata","the responce is ${response.getString("url")}")
@@ -43,12 +43,14 @@ memecaller()
             },
             { error ->
                 x=false
+                binding.progressbar.visibility=View.GONE
+                Toast.makeText(applicationContext,"Something Went Wrong !!",Toast.LENGTH_SHORT).show()
                 Log.d("sougata","something went wrong")
             }
         )
 
-// Add the request to the RequestQueue.
-        queue.add(jsonObjectRequest)
+
+       MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest)
     }
     fun sharememe(view: View) {
         if(x) {
