@@ -1,16 +1,26 @@
 package com.example.myapplication
 
+import android.Manifest
+import android.app.AlertDialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.android.volley.Request
 import com.android.volley.Response
@@ -25,15 +35,31 @@ import com.bumptech.glide.request.target.Target
 import com.example.myapplication.databinding.ActivityMainBinding
 import java.io.ByteArrayOutputStream
 
+
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
+    private var isRecordPermissionGranted = false
+    private var isWritePermissionGranted = false
+
     var x=false
     val url = "https://meme-api.com/gimme"
     private lateinit var binding: ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
-        binding=ActivityMainBinding.inflate(LayoutInflater.from(this))
+        binding = ActivityMainBinding.inflate(LayoutInflater.from(this))
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-memecaller()
+        memecaller()
+
+        permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){ permissions ->
+
+
+            isRecordPermissionGranted = permissions[Manifest.permission.RECORD_AUDIO] ?: isRecordPermissionGranted
+            isWritePermissionGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] ?: isWritePermissionGranted
+
+        }
+        requestPermission()
+
     }
     fun memecaller(){
         binding.progressbar.visibility=View.VISIBLE
@@ -81,8 +107,10 @@ memecaller()
 
        MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest)
     }
-    fun sharememe(view: View) {
-        if(x) {
+
+
+    fun shareMeme() {
+
 
             val intent = Intent(Intent.ACTION_SEND).setType("image/*")
 
@@ -106,11 +134,49 @@ memecaller()
 
 
             startActivity(intent)
-        }
+
 
 
     }
+
     fun nextmeme(view: View) {
     memecaller()
     }
+    private fun requestPermission(){
+
+        isRecordPermissionGranted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+
+        isWritePermissionGranted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
+
+        val permissionRequest : MutableList<String> = ArrayList()
+
+
+        if (!isRecordPermissionGranted){
+
+            permissionRequest.add(Manifest.permission.RECORD_AUDIO)
+
+        }
+        if (!isWritePermissionGranted){
+
+            permissionRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+        }
+        if (permissionRequest.isNotEmpty()){
+
+            permissionLauncher.launch(permissionRequest.toTypedArray())
+        }
+
+    }
+
+    fun sharememe(view: View) {
+        shareMeme()
+    }
+
+
 }
